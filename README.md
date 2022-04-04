@@ -1,2 +1,3 @@
 # HeadDirectionPredNet
-Code and data accompanying the paper "Integrating Spiking Neural Networks and Deep Learning Algorithms on the Neurorobotics Platform"
+Code and data accompanying the paper "A Spiking Neural Network Model of Rodent Head Direction calibrated with Landmark Free Learning"
+
