@@ -7,7 +7,11 @@ Preprint at: https://doi.org/10.1101/2022.02.01.478640
 
 ### Data
 
-Links to datasets used in the paper with code to generate more from ROSBags.
+Code to extract from ROSBags and process them into data suitable for the machine learning algorithms.
+
+The datasets used in the paper can be found at: https://we.tl/t-JXgU04ZLmC
+
+The predictions used in the paper can be found at: 
 
 ### Figures
 
