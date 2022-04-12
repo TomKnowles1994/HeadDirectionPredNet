@@ -11,7 +11,13 @@ Code to extract from ROSBags and process them into data suitable for the machine
 
 The datasets used in the paper can be found at: https://we.tl/t-JXgU04ZLmC
 
-The predictions used in the paper can be found at: 
+The predictions used in the paper can be found at:-
+
+PCN Predictions:
+
+VAE Predictions: 
+
+CNN Predictions: https://we.tl/t-6YJ7kjhjMV
 
 ### Figures
 
