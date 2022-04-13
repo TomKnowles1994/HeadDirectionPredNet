@@ -15,7 +15,7 @@ The predictions used in the paper can be found at:-
 
 PCN Predictions: https://we.tl/t-UtTHeiKz9F
 
-VAE Predictions: 
+VAE Predictions: https://we.tl/t-YiJ5SMWSzK
 
 CNN Predictions: https://we.tl/t-6YJ7kjhjMV
 
