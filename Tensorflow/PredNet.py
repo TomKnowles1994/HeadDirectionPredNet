@@ -31,7 +31,7 @@ def load_npy_data(data_path, sample_count, minibatch_size, shuffle=True):
 
     pose_file = '/networkOutput_gaussianised.npy'
 
-    img = np.load(data_path + images_file)[3000:3500]
+    img = np.load(data_path + images_file)
 
     if img.shape[0] > sample_count:
 
@@ -39,8 +39,9 @@ def load_npy_data(data_path, sample_count, minibatch_size, shuffle=True):
 
     img = img.reshape(img.shape[0], 10800) # flatten
 
-    pose_data = np.load(data_path + pose_file)[3000:3500]#np.load(data_path + '/networkOutput.npy').T
-    #print(pose_data.shape)
+    pose_data = np.load(data_path + pose_file)
+    
+    # Sanity checks to ensure data fits within minibatch size; trim if not
 
     if pose_data.shape[0] > sample_count:
 
@@ -77,34 +78,9 @@ def load_npy_data(data_path, sample_count, minibatch_size, shuffle=True):
     print("Final image data shape: {}".format(img.shape))
     print("Final HD data shape: {}".format(pose_data.shape))
 
-    #n_sample = img.shape[0]
-
     return img, pose_data
 
-def load_mat_data(data_path, shuffle=True):
-    #img = np.array(sio.loadmat(data_path + '/images.mat')['images'].tolist())[0].astype(np.float32)
-    #for x in range(img.shape[0]):
-    #    img[x]=img[x]/255;          # normalise
-    visual_data = img_as_float(np.array(sio.loadmat(data_path + '/images.mat')['images'].tolist())[0]) #load from matlab and normalise
-    visual_data = visual_data.reshape(visual_data.shape[0], 10800) # flatten
-    poses = sio.loadmat(data_path + '/poses.mat')['pose']
-    pose_data = preprocess_pose_data(poses)
-
-    if shuffle:
-        # shuffle sequence of data but maintain visual-pose alignment
-        visual_data, pose_data = shuffle_in_sync(visual_data, pose_data)
-
-    return visual_data, pose_data
-
-def preprocess_pose_data(pose_data):
-    scaler = MinMaxScaler(copy=False)
-    scaler.fit(pose_data)
-    scaler.transform(pose_data)
-
-    return pose_data
-
 def shuffle_in_sync(visual_data, pose_data):
-    #assert visual_data.shape[0] == pose_data.shape[0]
 
     shared_indices = permutation(visual_data.shape[0])
     shuffled_visual, shuffled_pose = visual_data[shared_indices], pose_data[shared_indices]
@@ -181,30 +157,25 @@ visual_data, pose_data = load_npy_data(data_path, n_sample, minibatch_sz, shuffl
 load_model = False                          # If True, load a previously trained model from load_path. If False, train from scratch.
 
 m1_inp_shape = visual_data.shape[1]         # modality 1 (default vision) input layer shape
-m2_inp_shape = pose_data.shape[1]        # modality 2 (default pose) input layer shape
+m2_inp_shape = pose_data.shape[1]           # modality 2 (default pose) input layer shape
 
 m1_layers = [1000, 300]                     # modality 1 layers shape
-m2_layers = [120, 60]                        # modality 2 layers shape
-msi_layers = [100]                          # multi-modal integration layers shape
+msi_layers = [100]                          # multi-modal integration layers shape; m2 currently has no hidden layers
 
-m1_cause_init = [0.25, 0.25]                  # the starting value for the inference process, whereby priors are updated according to evidence; modality 1
-m2_cause_init = [0.25, 0.25]                  # the starting value for the inference process, whereby priors are updated according to evidence; modality 2
-msi_cause_init = [0.25]                      # the starting value for the inference process, whereby priors are updated according to evidence; multi-modal integration
+m1_cause_init = [0.25, 0.25]                # the starting value for the inference process, whereby priors are updated according to evidence; modality 1
+msi_cause_init = [0.25]                     # the starting value for the inference process, whereby priors are updated according to evidence; multi-modal integration
 
 reg_m1_causes = [0.0, 0.0]                  # regularised error, disabled by default; modality 1
 reg_m2_causes = [0.2, 0.2]                  # regularised error, disabled by default; modality 2
 reg_msi_causes = [0.0]                      # regularised error, disabled by default; multi-modal integration
 
 lr_m1_causes = [0.0004, 0.0004]             # learning rate for the inference process; modality 1
-lr_m2_causes = [0.0004, 0.0004]               # learning rate for the inference process; modality 2
 lr_msi_causes = [0.0004]                    # learning rate for the inference process; multi-modal integration
 
 reg_m1_filters = [0.0, 0.0]                 # filters for regularised error, disabled by default; modality 1
-reg_m2_filters = [0.2, 0.2]                 # filters for regularised error, disabled by default; modality 2
 reg_msi_filters = [0.0, 0.0]                # filters for regularised error, disabled by default; multi-modal integration
 
 lr_m1_filters = [0.0001, 0.0001]            # learning rate for the inference process; modality 1
-lr_m2_filters = [0.00001, 0.00001]              # learning rate for the inference process; modality 2
 lr_msi_filters = [0.0001, 0.0001]           # learning rate for the inference process; multi-modal integration
 
 class Network:
@@ -239,21 +210,6 @@ class Network:
             init = tf.constant_initializer(m1_cause_init[i])
             self.m1_causes += [tf.get_variable(cause_name, shape=[n_sample, self.m1_layers[i]], initializer=init)]
 
-        # create filters and cause for m2
-        #self.m2_filters = []
-        #self.m2_causes = []
-        #for i in range(len(self.m2_layers)):
-        #    filter_name = 'm2_filter_%d' % i
-        #    cause_name = 'm2_cause_%d' % i
-
-        #    if i == 0:
-        #        self.m2_filters += [tf.get_variable(filter_name, shape=[self.m2_layers[i], self.m2_inp_shape])]
-        #    else:
-        #        self.m2_filters += [tf.get_variable(filter_name, shape=[self.m2_layers[i], self.m2_layers[i-1]])]
-
-        #    init = tf.constant_initializer(m2_cause_init[i])
-        #    self.m2_causes += [tf.get_variable(cause_name, shape=[n_sample, self.m2_layers[i]], initializer=init)]
-
         # create filters and cause for msi
         self.msi_filters = []
         self.msi_causes = []
@@ -284,13 +240,6 @@ class Network:
         for i in range(len(self.m1_layers)):
             self.m1_minibatch += [tf.gather(self.m1_causes[i], indices=current_batch, axis=0)]
             self.m1_predictions += [tf.nn.leaky_relu(tf.matmul(self.m1_minibatch[i], self.m1_filters[i]))]
-
-        # m2 predictions
-        # self.m2_minibatch = []
-        # self.m2_predictions = []
-        # for i in range(len(self.m2_layers)):
-        #     self.m2_minibatch += [tf.gather(self.m2_causes[i], indices=current_batch, axis=0)]
-        #     self.m2_predictions += [tf.nn.leaky_relu(tf.matmul(self.m2_minibatch[i], self.m2_filters[i]))]
 
         # msi predictions
         self.msi_minibatch = []
@@ -339,45 +288,6 @@ class Network:
             self.m1_update_filter += [
                 tf.assign_sub(self.m1_filters[i], lr_m1_filters[i] * m1_filter_grad)]
 
-        # add ops for computing gradients for m2 causes and for updating weights
-        # self.m2_bu_error = []
-        # self.m2_update_filter = []
-        # self.m2_cause_grad = []
-        # for i in range(len(self.m2_layers)):
-        #     if i == 0:
-        #         self.m2_bu_error += [tf.losses.mean_squared_error(self.x_m2, self.m2_predictions[i],
-        #                                                                     reduction=tf.losses.Reduction.NONE)]
-        #     else:
-        #         self.m2_bu_error += [tf.losses.mean_squared_error(
-        #             tf.stop_gradient(self.m2_minibatch[i - 1]), self.m2_predictions[i],
-        #             reduction=tf.losses.Reduction.NONE)]
-
-        #     # compute top-down prediction error
-        #     if len(self.m2_layers) > (i + 1):
-        #         # there are more layers in this modality
-        #         td_error = tf.losses.mean_squared_error(
-        #             tf.stop_gradient(self.m2_predictions[i+1]), self.m2_minibatch[i],
-        #                 reduction=tf.losses.Reduction.NONE)
-        #     else:
-        #         # this is the only layer in this modality
-        #         td_error = tf.losses.mean_squared_error(
-        #             tf.stop_gradient(self.msi_predictions[1]), self.m2_minibatch[i],
-        #                 reduction=tf.losses.Reduction.NONE)
-
-        #     #reg_error = reg_m2_causes[i] * (self.m2_minibatch[i] ** 2)
-        #     # reg_error = tf.keras.regularizers.l2(reg_m2_causes[i])(self.m2_minibatch[i])
-        #     reg_error = reg_m1_causes[i] * ((self.m1_minibatch[i] - circular_mean(self.m1_minibatch[i], gaussian = False)) ** 2)
-        #     self.m2_cause_grad += [
-        #         tf.gradients([self.m2_bu_error[i], td_error, reg_error], self.m2_minibatch[i])[0]]
-
-        #     # add ops for updating weights
-        #     reg_error = reg_m2_filters[i] * (self.m2_filters[i] ** 2)
-        #     m2_filter_grad = tf.gradients([self.m2_bu_error[i], reg_error], self.m2_filters[i])[0]
-        #     self.m1_update_filter += [
-        #         tf.assign_sub(self.m2_filters[i], lr_m2_filters[i] * m2_filter_grad)]
-        #     #else:
-        #         #raise NotImplementedError
-
         # add ops for computing gradients for msi causes
         self.msi_bu_error = []
         self.msi_reg_error = []
@@ -422,12 +332,6 @@ class Network:
             for i in range(len(self.m1_layers)):
                 self.m1_update_cause += [tf.scatter_sub(self.m1_causes[i], indices=current_batch,
                                                                   updates=(lr_m1_causes[i] * self.m1_cause_grad[i]))]
-
-            # m2 modality
-            # for i in range(len(self.m2_layers)):
-            #     self.m2_update_cause += [tf.scatter_sub(self.m2_causes[i], indices=current_batch,
-            #                                                       updates=(lr_m2_causes[i] * self.m2_cause_grad[i]))]
-
             # msi modality
             for i in range(len(self.msi_layers)):
                 self.msi_update_cause += [tf.scatter_sub(self.msi_causes[i], indices=current_batch,
@@ -458,16 +362,12 @@ def train():
             assert completed_epoch == m1_epoch_loss.shape[0], 'Value of completed_epoch is incorrect'
 
             m1_epoch_loss = np.vstack([m1_epoch_loss, np.zeros((n_epoch, len(m1_layers)))])
-
-            # m2_epoch_loss = np.vstack(
-            #     [np.load('%s/m2_epoch_loss.npy' % load_path), np.zeros((n_epoch, len(m2_layers)))])
+            
             msi_epoch_loss = np.vstack(
                 [np.load('%s/msi_epoch_loss.npy' % load_path), np.zeros((n_epoch, len(msi_layers) + 1))])
 
             m1_avg_activity = np.vstack(
                 [np.load('%s/m1_avg_activity.npy' % load_path), np.zeros((n_epoch, len(m1_layers)))])
-            # m2_avg_activity = np.vstack(
-            #     [np.load('%s/m2_avg_activity.npy' % load_path), np.zeros((n_epoch, len(m2_layers)))])
             msi_avg_activity = np.vstack(
                 [np.load('%s/msi_avg_activity.npy' % load_path), np.zeros((n_epoch, len(msi_layers)))])
         else:
@@ -527,10 +427,6 @@ def train():
                                                    if np.max(np.mean(item, axis=1)) > m1_epoch_loss[current_epoch, l]
                                                    else m1_epoch_loss[current_epoch, l]
                                                    for l, item in enumerate(m1_error)]
-                #m2_epoch_loss[current_epoch, :] = [np.max(np.mean(item, axis=1))
-                #                                   if np.max(np.mean(item, axis=1)) > m2_epoch_loss[current_epoch, l]
-                #                                   else m2_epoch_loss[current_epoch, l]
-                #                                   for l, item in enumerate(m2_error)]
                 msi_epoch_loss[current_epoch, :] = [np.max(np.mean(item, axis=1))
                                                     if np.max(np.mean(item, axis=1)) > msi_epoch_loss[current_epoch, l]
                                                     else msi_epoch_loss[current_epoch, l]
@@ -538,7 +434,6 @@ def train():
 
             # track average activity in inferred causes
             m1_avg_activity[current_epoch, :] = [np.mean(item) for item in m1_cause]
-            #m2_avg_activity[current_epoch, :] = [np.mean(item) for item in m2_cause]
             msi_avg_activity[current_epoch, :] = [np.mean(item) for item in msi_cause]
 
             print('(%d) M1:%s (%s), MSI:%s (%s)' % (
@@ -561,18 +456,18 @@ def train():
 
 if __name__ == '__main__':
     starttime = time.time()
-    #train()
+    train()
     endtime = time.time()
 
     print ('Time taken: %f' % ((endtime - starttime) / 3600))
 
-model_path = 'C:/Users/Thomas/Downloads/HBP/model_checkpoints/landmarks_vh/whiskeye_head_direction_ideo/'#trial1/'
+model_path = ' ' # Change this path to select saved model weights to load into the inference network
 
 num_test_samps = 3000
 
-error_criterion = np.array([1e-3, 1e-3, 3e-3, 3e-3])
+error_criterion = np.array([1e-3, 1e-3, 3e-3, 3e-3]) # Corresponds to m1 layers [0, 1] and msi layers [0, 1]
 
-max_iter = 500
+max_iter = 500 # If causal inference doesn't get the prediction within the error criterion, timeout after X iterations
 
 class InferenceNetwork:
     def __init__(self, m1_inp_shape, m2_inp_shape, m1_layers, m2_layers, msi_layers, m1_cause_init,
@@ -603,21 +498,6 @@ class InferenceNetwork:
             init = tf.constant_initializer(m1_cause_init[i])
             self.m1_causes += [tf.get_variable(cause_name, shape=[1, self.m1_layers[i]], initializer=init)]
 
-        # create filters and cause for m2
-        # self.m2_filters = []
-        # self.m2_causes = []
-        # for i in range(len(self.m2_layers)):
-        #     filter_name = 'm2_filter_%d' % i
-        #     cause_name = 'm2_cause_%d' % i
-
-        #     if i == 0:
-        #         self.m2_filters += [tf.get_variable(filter_name, shape=[self.m2_layers[i], self.m2_inp_shape])]
-        #     else:
-        #         self.m2_filters += [tf.get_variable(filter_name, shape=[self.m2_layers[i], self.m2_layers[i-1]])]
-
-        #     init = tf.constant_initializer(m2_cause_init[i])
-        #     self.m2_causes += [tf.get_variable(cause_name, shape=[1, self.m2_layers[i]], initializer=init)]
-
         # create filters and cause for msi
         self.msi_filters = []
         self.msi_causes = []
@@ -644,11 +524,6 @@ class InferenceNetwork:
         self.m1_predictions = []
         for i in range(len(self.m1_layers)):
             self.m1_predictions += [tf.nn.leaky_relu(tf.matmul(self.m1_causes[i], self.m1_filters[i]))]
-
-        # m2 predictions
-        # self.m2_predictions = []
-        # for i in range(len(self.m2_layers)):
-        #     self.m2_predictions += [tf.nn.leaky_relu(tf.matmul(self.m2_causes[i], self.m2_filters[i]))]
 
         # msi predictions
         self.msi_predictions = []
@@ -689,35 +564,6 @@ class InferenceNetwork:
             self.m1_cause_grad += [tf.gradients([self.m1_bu_error[i], td_error, reg_error],
                                                           self.m1_causes[i])[0]]
 
-        # add ops for computing gradients for m2 causes and for updating weights
-        # self.m2_bu_error = []
-        # self.m2_update_filter = []
-        # self.m2_cause_grad = []
-        # for i in range(len(self.m2_layers)):
-        #     if i == 0:
-        #         self.m2_bu_error += [tf.losses.mean_squared_error(self.x_m2, self.m2_predictions[i],
-        #                                                                     reduction=tf.losses.Reduction.NONE)]
-        #     else:
-        #         self.m2_bu_error += [tf.losses.mean_squared_error(
-        #             tf.stop_gradient(self.m2_causes[i - 1]), self.m2_predictions[i],
-        #                 reduction=tf.losses.Reduction.NONE)]
-
-        #     if len(self.m2_layers) > (i + 1):
-        #     # there are more layers in this modality
-        #         td_error = tf.losses.mean_squared_error(
-        #             tf.stop_gradient(self.m2_predictions[i+1]), self.m2_causes[i],
-        #                 reduction=tf.losses.Reduction.NONE)
-        #     else:
-        #     # this is the only layer in this modality
-        #         td_error = tf.losses.mean_squared_error(
-        #             tf.stop_gradient(self.msi_predictions[1]), self.m2_causes[i],
-        #                 reduction=tf.losses.Reduction.NONE)
-
-        #     reg_error = reg_m2_causes[i] * (self.m2_causes[i] ** 2)
-        #     # reg_error = tf.keras.regularizers.l2(reg_m2_causes[i])(self.m2_minibatch[i])
-        #     self.m2_cause_grad += [
-        #         tf.gradients([self.m2_bu_error[i], td_error, reg_error], self.m2_causes[i])[0]]
-
         # add ops for computing gradients for msi causes
         self.msi_bu_error = []
         self.msi_reg_error = []
@@ -753,16 +599,11 @@ class InferenceNetwork:
 
         # add ops for updating causes
         self.m1_update_cause = []
-        # self.m2_update_cause = []
         self.msi_update_cause = []
         with tf.control_dependencies(self.m1_cause_grad + self.msi_cause_grad):
             # m1 modality
             for i in range(len(self.m1_layers)):
                 self.m1_update_cause += [tf.assign_sub(self.m1_causes[i], (lr_m1_causes[i] * self.m1_cause_grad[i]))]
-
-            # m2 modality
-            # for i in range(len(self.m2_layers)):
-            #     self.m2_update_cause += [tf.assign_sub(self.m2_causes[i], (lr_m2_causes[i] * self.m2_cause_grad[i]))]
 
             # msi modality
             for i in range(len(self.msi_layers)):
@@ -818,8 +659,6 @@ def infer_repr(sess, net, max_iter=1, error_criterion=0.0001, visual_data=None, 
 
     # reconstruct the missing modality
     recon_pose = np.dot(msi_cause[0], msi_filter[1])
-    #for l in range(len(m2_filter), 0, -1):
-    #    recon_pose = np.dot(recon_pose, m2_filter[l - 1])
     recon_vis = np.dot(msi_cause[0], msi_filter[0])
     for l in range(len(m1_filter), 0, -1):
         recon_vis = np.dot(recon_vis, m1_filter[l - 1])
@@ -866,37 +705,15 @@ def run_inference(sess, net, visual_data, pose_data, representations_save_path, 
 
 def generate_representations(shuffle):
 
-    root_test_path = "C:/Users/Thomas/Downloads/HBP/multimodalplacerecognition_datasets/whiskeye_head_direction_"
-    root_representations_path = "C:/Users/Thomas/Downloads/HBP/representations/NRP/whiskeye_head_direction_"
-
-    #dataset = 1
-    #if True:
-    if False:
-    #for dataset in (1,6):#,10,11,12):#13,14,15,16,17,18,19,20):#for dataset in (9,10,11,12,1,2,3,4,5,6,7,8):
-
-        test_set = root_test_path + "{}".format(dataset)
-        #reconstructions_save_path = "C:/Users/Thomas/Downloads/HBP/results/fully_trained_reconstructions/matlab_physical_baseline/testset{}/".format(dataset)
-        representations_save_path = root_representations_path + "{}/both/".format(dataset)
-
-        visual_data, pose_data = load_npy_data(test_set, num_test_samps, minibatch_sz, shuffle = shuffle)#load_mat_data(test_set, shuffle = shuffle)
-        print(visual_data.shape)
-
-        sess, net = init_network(model_path, available_modality = 'both')
-
-        print("Dataset {}".format(dataset))
-
-        run_inference(sess, net, visual_data, pose_data, representations_save_path, avail_modality = 'both')
+    root_test_path = ' ' # Point this to the folder containing all the test data folders
+    root_representations_path = ' ' # Point this to where you want the predictions/representations to be output
 
     if True:
-        dataset = "random_distal_2"
-    #if False:
-    #for dataset in (1,6):#,10,11,12):#for dataset in (1,11):
-    #for dataset in ("circling_proximal", "random_distal", "random_proximal", "cogarch"): #("rotating_distal", "rotating_proximal", "circling_distal", "circling_proximal", "random_distal", "random_proximal", "cogarch"):
-    #for dataset in ("random_distal_2", "random_distal_3", "random_distal_4", "random_distal_5"):
+        dataset = ' ' # Change this to point to the data folder you want to draw data (images.npy and networkOutput_gaussianied.npy)
+    # Alternatively, swap this to: "for dataset in (<comma-seperated folder names>):" for multiple datasets
 
         test_set = root_test_path + "{}".format(dataset)
-        #reconstructions_save_path = "C:/Users/Thomas/Downloads/HBP/results/fully_trained_reconstructions/matlab_physical_blind_blackout/testset{}/".format(dataset)
-        representations_save_path = root_representations_path + "{}_ideo/visual/".format(dataset)
+        representations_save_path = root_representations_path + "{}/visual/".format(dataset)
 
         visual_data, pose_data = load_npy_data(test_set, num_test_samps, minibatch_sz, shuffle = shuffle)#load_mat_data(test_set, shuffle = shuffle)
 
@@ -905,22 +722,6 @@ def generate_representations(shuffle):
         print("Dataset {}".format(dataset))
 
         run_inference(sess, net, visual_data, pose_data, representations_save_path, avail_modality = 'visual')
-
-    #if True:
-    if False:
-    #for dataset in (1,6):#,10,11,12):#for dataset in (9,10,11,12,1,2,3,4,5,6,7,8):
-
-        test_set = root_test_path + "{}".format(dataset)
-        #reconstructions_save_path = "C:/Users/Thomas/Downloads/HBP/results/fully_trained_reconstructions/matlab_physical_numb_blackout/testset{}/".format(dataset)
-        representations_save_path = root_representations_path + "{}/head_direction/".format(dataset)
-
-        visual_data, pose_data = load_npy_data(test_set, num_test_samps, minibatch_sz, shuffle = shuffle)#load_mat_data(test_set, shuffle = shuffle)
-
-        sess, net = init_network(model_path, available_modality = 'pose')
-
-        print("Dataset {}".format(dataset))
-
-        run_inference(sess, net, visual_data, pose_data, representations_save_path, avail_modality = 'pose')
 
 starttime = time.time()
 
