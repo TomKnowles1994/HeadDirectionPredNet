@@ -7,35 +7,16 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import minmax_scale
 from sklearn.metrics import mean_squared_error
 
+# 'ground_truth_to_prediction' - error between prediction and the respective ground truth value. Measures quality and accuracy
+# 'prediction_to_prediction' - error between prediction and its ideal Laplacian form. Measure quality only
+
 mode = 'ground_truth_to_prediction'
 
 mean_random = True
 
-#full_colour = '#63F500'
-#single_colour = '#09D4F5'
-#ideo_colour = '#F70C7D'
-
-#full_colour = '#4CBF00'
-#single_colour = '#08A9C2'
-#ideo_colour = '#BF0A61'
-
-#full_colour = None
-#single_colour = None
-#ideo_colour = None
-
 pcn_colour = '#63F500'
 vae_colour = '#09D4F5'
-cnn_colour = '#F70C7D'#031BFF'
-
-#pcn_colour = '#F53313'#F56700'#F56000'
-#vae_colour = '#3A78CF'#00F5A5'
-#cnn_colour = '#8925BD'#3200FA'
-
-#pcn_colour = '#713BF5'#F56000'
-#vae_colour = '#12B325'#00F5A5'
-#cnn_colour = '#FC9D3F'#3200FA'
-
-#bar_width = 0.2#0.18
+cnn_colour = '#F70C7D'
 
 def load_datasets(file_names, max_samples, clip = None, raise_floor = False, transpose = False):
 
@@ -109,14 +90,7 @@ def calculate_divergence(prediction_list, laplacian_list, metric):
 
             wasserstein_distances = []
 
-            #print(predictions.shape)
-
             for prediction, laplacian in zip(predictions, laplacians):
-
-                #wasserstein_forward = wasserstein_distance(prediction, laplacian) % 180
-                #wasserstein_backward = wasserstein_distance(laplacian, prediction) % 180
-
-                #wasserstein_distances.append(np.min([wasserstein_forward, wasserstein_backward]))
 
                 wasserstein_distances.append(wasserstein_distance(prediction, laplacian))
 
@@ -129,9 +103,6 @@ def calculate_divergence(prediction_list, laplacian_list, metric):
             kl_divergences = []
 
             for prediction, laplacian in zip(predictions, laplacians):
-
-                #print(prediction.shape)
-                #print(laplacian.shape)
 
                 kl_divergences.append(kl_div(prediction, laplacian))
 
@@ -171,11 +142,11 @@ def distribution_fudge(prediction_list):
 
     return prediction_list
 
-datasets_root_path = 'C:/Users/Thomas/Downloads/HBP/multimodalplacerecognition_datasets/whiskeye_head_direction_'
+datasets_root_path = ' ' # Point to the folder containing dataset folders
 
-representations_root_path = 'C:/Users/Thomas/Downloads/HBP/representations/NRP/whiskeye_head_direction_'
+representations_root_path = ' ' # Point to folder containing representations folders
 
-results_root_path = 'C:/Users/Thomas/Downloads/HBP/head_direction_evaluation/whiskeye_head_direction_'
+results_root_path = ' ' # Point to folder containing results folders
 
 ground_truth_filenames = [              datasets_root_path + 'rotating_distal/networkOutput_gaussianised.npy',
                                         datasets_root_path + 'circling_distal/networkOutput_gaussianised.npy',
@@ -227,8 +198,6 @@ fig, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey = 'row')
 fig.set_figheight(4)
 fig.set_figwidth(10)
 
-#fig.tight_layout()
-
 ### Jensen-Shannon ###
 
 if mode is 'prediction_to_prediction':
@@ -253,7 +222,7 @@ if mode is 'ground_truth_to_prediction':
 
 ### ConvNet Reconstruction Quality ###
 
-representations_root_path = 'C:/Users/Thomas/Downloads/HBP/representations/NRP/whiskeye_head_direction_'
+representations_root_path = ' ' # Point to folder containing representations folders
 
 ground_truth_filenames = [              datasets_root_path + 'rotating_distal/networkOutput_gaussianised.npy',
                                         datasets_root_path + 'circling_distal/networkOutput_gaussianised.npy',
@@ -322,7 +291,7 @@ if mode is 'ground_truth_to_prediction':
 
 ### ConvNet Reconstruction Quality ###
 
-representations_root_path = 'C:/Users/Thomas/Downloads/HBP/representations/NRP/whiskeye_head_direction_'
+representations_root_path = ' ' # Point to folder containing representations folders
 
 ground_truth_filenames = [              datasets_root_path + 'rotating_distal/networkOutput_gaussianised.npy',
                                         datasets_root_path + 'circling_distal/networkOutput_gaussianised.npy',
@@ -500,19 +469,7 @@ fig.tight_layout()
 
 plt.subplots_adjust(wspace=0.1, hspace=0.2)
 
-#plt.subplots_adjust(top = 0.2, bottom = 0.15)
-
 plt.subplots_adjust(bottom = 0.2)
-
-#fig.tight_layout()
-
-#ax2.legend(bbox_to_anchor=(1.17, -0.1), ncol=3, prop={'size': 12})
-
-#ax2.legend(bbox_to_anchor=(1.05, -0.1), ncol=3, prop={'size': 12})
-
-#ax2.legend(bbox_to_anchor=(1.30, -0.1), ncol=3, prop={'size': 12})
-
-#ax2.legend(bbox_to_anchor=(1.60, -0.1), ncol=3, prop={'size': 12})
 
 ax2.legend(bbox_to_anchor=(1.10, -0.1), ncol=3, prop={'size': 12})
 
