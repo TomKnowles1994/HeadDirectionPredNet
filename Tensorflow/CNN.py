@@ -113,12 +113,12 @@ if True:
 
     print("Creating Predictions for {} dataset".format(dataset))
 
-    data_path = ' ' # Point to dataset folder
+    data_path = '{}'.format(dataset) # Point to dataset folder
 
     images, _ = load_npy_data(data_path, 3000, pose_file = '/networkOutput_gaussianised.npy', shuffle = False)
 
     predictions = model.predict(x = images)
 
-    predictions_save_path = ' ' # Output predictions here
+    predictions_save_path = '{}'.format(dataset) # Output predictions here
 
     np.save(predictions_save_path + "/visual/predictions_conv.npy", predictions)
