@@ -27,6 +27,10 @@ Figures used in the paper, with code to generate where appropriate.
 
 Jupyter notebook files that can build and run the Ring Attractor Head Direction Cell model, outputting Idiothetic Estimates of head direction.
 
+### Results
+
+Script to analyse the Predictions compared to the ground truth data. This is needed for Figures 6 and 7 especially.
+
 ### Tensorflow
 
 Python code to build and run the three machine learning models used in the paper; the Predictive Coding network, the Variational Autoencoder and the Convolutional Neural Network.
