@@ -39,31 +39,11 @@ def shuffle_in_sync(visual_data, pose_data):
 
     return shuffle_visual, shuffle_tactical
 
-def load_mat_data(data_path, shuffle = False):
-    #img = img_as_float(np.array(sio.loadmat(data_path + '/images.mat')['images'].tolist())[0])
-    img = np.array(sio.loadmat(data_path + '/images.mat')['images'].tolist())[0].astype(np.float32)
-    img = img /255;          # normalise
-    img = img.reshape(img.shape[0], 10800) # flatten
-    
-    theta = sio.loadmat(data_path + '/theta.mat')['theta']
-    xy = sio.loadmat(data_path + '/xy.mat')['xy']
-
-    # reshape and combine whisker data
-    theta = np.reshape(theta, [-1, theta.shape[-1]]).T
-    xy = np.reshape(xy, [-1, xy.shape[-1]]).T
-    pose_data = preprocess_pose_data(np.concatenate([theta, xy], axis=1))
-
-    if shuffle == True:
-
-        img, pose_data = shuffle_in_sync(img, pose_data)
-
-    return img, pose_data
-
 def load_npy_data(data_path, shuffle=True):
 
     img = np.load(data_path + '/images.npy')
-    img = img.reshape(img.shape[0], 10800) # no flattening needed for convnets
-    pose_data = np.load(data_path + '/networkOutput_gaussianised.npy')#np.load(data_path + '/networkOutput.npy').T
+    img = img.reshape(img.shape[0], 10800)
+    pose_data = np.load(data_path + '/networkOutput_gaussianised.npy')
 
     if shuffle:
         # shuffle sequence of data but maintain visual-pose alignment
@@ -100,9 +80,6 @@ class JMVAE_kl(Model):
         # create unimodal M1 encoder
         unimodal_m1_inp = Input(shape=(self.input_dim_m1,))
         prev_layer_m1 = unimodal_m1_inp
-        #for h in self.encoder_hidden_dim_m1:
-        #    x = Dense(units=h, activation='relu')(prev_layer_m1)
-        #    prev_layer_m1 = x
         unimodal_m1_out = Dense(units=(self.latent_dim * 2))(prev_layer_m1)
 
         # create unimodal M2 encoder
@@ -116,9 +93,6 @@ class JMVAE_kl(Model):
         # create multimodal M1 encoder
         multimodal_m1_inp = Input(shape=(self.input_dim_m1,))
         prev_layer_m1 = multimodal_m1_inp
-        #for h in self.encoder_hidden_dim_m1:
-        #    x = Dense(units=h, activation='relu')(prev_layer_m1)
-        #    prev_layer_m1 = x
 
         # create multimodal M2 encoder
         multimodal_m2_inp = Input(shape=(self.input_dim_m2,))
@@ -136,9 +110,6 @@ class JMVAE_kl(Model):
         # create unimodal M1 decoder
         unimodal_m1_inp = Input(shape=(self.latent_dim,))  # there is one input layer in case of decoder
         prev_layer_m1 = unimodal_m1_inp
-        #for h in self.decoder_hidden_dim_m1:
-        #    x = Dense(units=h, activation='relu')(prev_layer_m1)
-        #    prev_layer_m1 = x
         unimodal_m1_out = Dense(units=self.input_dim_m1, activation='sigmoid')(prev_layer_m1)
 
         # create unimodal M2 decoder
@@ -153,9 +124,6 @@ class JMVAE_kl(Model):
         multimodal_inp = Input(shape=(self.latent_dim,)) # there is one input layer in case of decoder
         # create multimodal M1 decoder
         prev_layer_m1 = multimodal_inp
-        #for h in self.decoder_hidden_dim_m1:
-        #    x = Dense(units=h, activation='relu')(prev_layer_m1)
-        #    prev_layer_m1 = x
         multimodal_m1_out = Dense(units=self.input_dim_m1, activation='sigmoid')(prev_layer_m1)
         # create multimodal M2 decoder
         prev_layer_m2 = multimodal_inp
@@ -246,10 +214,6 @@ def compute_loss(model, x):
     m2_mm_kl_div = -0.5 * (1 + a - b - c)
     m2_mm_kl_div = tf.reduce_mean(model.alpha * tf.reduce_sum(m2_mm_kl_div, axis=1))
 
-    # return recon_err_uni_m1 + recon_err_uni_m2 + recon_err_multi_m1 + recon_err_multi_m2 + kl_div + m1_kl_div + \
-    #        m2_kl_div + m1_mm_kl_div + m2_mm_kl_div, recon_err_uni_m1, recon_err_uni_m2, m1_mm_kl_div, m2_mm_kl_div, \
-    #        mean
-
     return recon_err_uni_m1 + recon_err_uni_m2 + recon_err_multi_m1 + recon_err_multi_m2 + kl_div + m1_kl_div + \
           m2_kl_div + m1_mm_kl_div + m2_mm_kl_div, recon_err_uni_m1, recon_err_uni_m2, m1_mm_kl_div, m2_mm_kl_div, \
           mean, uni_m1_mean, uni_m2_mean
@@ -264,11 +228,11 @@ def train_step(model, x, optimizer):
 
 # Data paths
 
-tr_data_path = "C:/Users/Thomas/Downloads/HBP/multimodalplacerecognition_datasets/snow_husky_trainingset"
+tr_data_path = ' ' # Point to training data folder
 
-ts_data_path = "C:/Users/Thomas/Downloads/HBP/multimodalplacerecognition_datasets/snow_husky_testset1"
+ts_data_path =  ' ' # Point to test data folder
 
-checkpoint_path = "C:/Users/Thomas/Downloads/HBP/model_checkpoints/landmarks_vh/snow_husky/mmvae/"
+checkpoint_path = ' ' # Point to checkpoint folder
 
 def train():
 
@@ -348,7 +312,7 @@ def test_and_generate(  test_set, reconstructions_save_path, representations_sav
 
     optimizer = Adam(learning_rate=0.00005)
 
-    model.load_weights("C:/Users/Thomas/Downloads/HBP/model_checkpoints/landmarks_vh/snow_husky/mmvae/main.ckpt")
+    model.load_weights(' ') # Point to saved weight file (checkpoint)
 
     test_batch_sz = 500
 
@@ -406,10 +370,6 @@ def test_and_generate(  test_set, reconstructions_save_path, representations_sav
 
     if output_npys == True:
 
-        #np.save('{}/reps.npy'.format(representations_save_path), representations_multimodal)
-        #np.save('{}/reps_pose.npy'.format(representations_save_path), pose_representations)
-        #np.save('{}/reps_visual.npy'.format(representations_save_path), visual_representations)
-
         np.save('{}/reconstructions_unimodal_pose.npy'.format(representations_save_path), reconstructions_unimodal_pose)
         np.save('{}/reconstructions_unimodal_visual.npy'.format(representations_save_path), reconstructions_unimodal_vision)
         np.save('{}/reconstructions_multimodal_pose.npy'.format(representations_save_path), reconstructions_multimodal_pose)
@@ -417,144 +377,39 @@ def test_and_generate(  test_set, reconstructions_save_path, representations_sav
 
     if output_matlab == True:
 
-        #sio.savemat(representations_save_path + 'representations.mat', {'reps':representations_multimodal})
-        #sio.savemat(representations_save_path + 'representations_pose.mat', {'reps_pose':pose_representations})
-        #sio.savemat(representations_save_path + 'representations_visual.mat', {'reps_visual':visual_representations})
-
         sio.savemat(representations_save_path + 'reconstructions_unimodal_pose.mat', {'reconstructions_unimodal_pose':reconstructions_unimodal_pose})
         sio.savemat(representations_save_path + 'reconstructions_unimodal_visual.mat', {'reconstructions_unimodal_visual':reconstructions_unimodal_vision})
         sio.savemat(representations_save_path + 'reconstructions_multimodal_pose.mat', {'reconstructions_multimodal_pose':reconstructions_multimodal_pose})
         sio.savemat(representations_save_path + 'reconstructions_multimodal_visual.mat', {'reconstructions_multimodal_visual':reconstructions_multimodal_vision})
 
-    if False:
-
-        # Export reconstructions to Matlab too
-
-        matlab_reconstructions_unimodal_theta = []#np.zeros(shape=(73,24))
-        matlab_reconstructions_unimodal_xy = []#np.zeros(shape=(73,48))
-        matlab_reconstructions_unimodal_vision = []#np.zeros(shape=(73,45,80,3))
-        matlab_reconstructions_multimodal_theta = []#np.zeros(shape=(73,24))
-        matlab_reconstructions_multimodal_xy = []#np.zeros(shape=(73,48))
-        matlab_reconstructions_multimodal_vision = []#np.zeros(shape=(73,45,80,3))
-
-        descaled_pose_unimodal = np.zeros(shape=(73,72))
-        descaled_pose_multimodal = np.zeros(shape=(73,72))
-
-        print("Preallocation done")
-
-        #descaled_pose_unimodal = scaler.inverse_transform(reconstructions_unimodal_pose)
-        #descaled_pose_multimodal = scaler.inverse_transform(reconstructions_multimodal_pose)
-
-        print("Tactile Reconstruction done")
-
-        for reconstruction in range(test_batch_sz):
-
-            matlab_reconstructions_unimodal_vision.append(reconstructions_unimodal_vision[reconstruction,:,:,:])
-            matlab_reconstructions_multimodal_vision.append(reconstructions_multimodal_vision[reconstruction,:,:,:])
-
-            matlab_reconstructions_unimodal_theta.append(descaled_pose_unimodal[reconstruction,:24].reshape(4,6))
-            matlab_reconstructions_multimodal_theta.append(descaled_pose_multimodal[reconstruction,:24].reshape(4,6))
-
-            matlab_reconstructions_unimodal_xy.append(descaled_pose_unimodal[reconstruction,24:].reshape(2,4,6))
-            matlab_reconstructions_multimodal_xy.append(descaled_pose_multimodal[reconstruction,24:].reshape(2,4,6))
-
-        print("Visual reconstruction done")
-
-        # Build image dictionaries for savemat function
-
-        unimodal_vision_dictionary = OrderedDict()
-        index = 1
-
-        for item in matlab_reconstructions_unimodal_vision:
-            unimodal_vision_dictionary.update({'image' + str(index):item})
-            index += 1
-
-        multimodal_vision_dictionary = OrderedDict()
-        index = 1
-
-        for item in matlab_reconstructions_multimodal_vision:
-            multimodal_vision_dictionary.update({'image' + str(index):item})
-            index += 1
-
-        sio.savemat(reconstructions_save_path + 'unimodal_theta_reconstructions.mat', 
-                    {'unimodal_theta_reconstructions': matlab_reconstructions_unimodal_theta})
-
-        sio.savemat(reconstructions_save_path + 'multimodal_theta_reconstructions.mat', 
-                    {'multimodal_theta_reconstructions': matlab_reconstructions_multimodal_theta})
-
-        sio.savemat(reconstructions_save_path + 'unimodal_xy_reconstructions.mat', 
-                    {'unimodal_xy_reconstructions': matlab_reconstructions_unimodal_xy})
-        
-        sio.savemat(reconstructions_save_path + 'multimodal_xy_reconstructions.mat', 
-                    {'multimodal_xy_reconstructions': matlab_reconstructions_multimodal_xy})
-
-        sio.savemat(reconstructions_save_path + 'unimodal_vision_reconstructions.mat', 
-                    unimodal_vision_dictionary)
-
-        sio.savemat(reconstructions_save_path + 'multimodal_vision_reconstructions.mat', 
-                    multimodal_vision_dictionary)
-
-#train()
+train()
 
 def generate_mupnet_comparison_data():
 
-    # Baseline (unimpaired) 1,2,3,4
-    # Blind Blackout 1,4
-    # Numb Blackout 1,4
-
     K.clear_session()
     tf.compat.v1.reset_default_graph()
-
+    
+    # These device settings may not be appropriate for others' setups
+    
     config = tf.compat.v1.ConfigProto( device_count = {'GPU': 1} )
     config.gpu_options.allow_growth = True
     sess = tf.compat.v1.Session(config=config)
 
     K.set_session(sess)
+    
+    if True:
+        dataset = ' ' # Point to data folder
 
-    for dataset in range(1,13):#(3,5,7,9,11,13):#(1,2,3,4):
+    # Alternatively: "for dataset in (<comma-seperated dataset folders>):" for multiple datasets
 
-        test_set = "C:/Users/Thomas/Downloads/HBP/multimodalplacerecognition_datasets/snow_husky_testset{}".format(dataset)
-        reconstructions_save_path = "C:/Users/Thomas/Downloads/HBP/representations/NRP/snow_husky/mmvae/testset{}/both/".format(dataset)
-        representations_save_path = "C:/Users/Thomas/Downloads/HBP/representations/NRP/snow_husky/mmvae/testset{}/both/".format(dataset)
-
-        test_and_generate(  test_set, reconstructions_save_path, representations_save_path, 
-                            output_pngs = False, output_npys = True, output_matlab = True)
-
-    K.clear_session()
-    tf.compat.v1.reset_default_graph()
-
-    config = tf.compat.v1.ConfigProto( device_count = {'GPU': 1} )
-    config.gpu_options.allow_growth = True
-    sess = tf.compat.v1.Session(config=config)
-
-    K.set_session(sess)
-
-    for dataset in range(1,13):#(3,5,7,9,11,13):#(1,2,3,4):
-
-        test_set = "C:/Users/Thomas/Downloads/HBP/multimodalplacerecognition_datasets/snow_husky_testset{}".format(dataset)
-        reconstructions_save_path = "C:/Users/Thomas/Downloads/HBP/representations/NRP/snow_husky/mmvae/testset{}/visual/".format(dataset)
-        representations_save_path = "C:/Users/Thomas/Downloads/HBP/representations/NRP/snow_husky/mmvae/testset{}/visual/".format(dataset)
+        test_set = '{}'.format(dataset) # Fully qualified filepath, minus specific data folder
+        reconstructions_save_path = '{}'.format(dataset) # Fully qualified filepath, assuming reconstructions output folder named the same as dataset
+        representations_save_path = '{}'.format(dataset) # Fully qualified filepath, assuming same name as dataset. This will usually be the same as reconstructions save path
 
         test_and_generate(  test_set, reconstructions_save_path, representations_save_path, available_modality = "visual", 
                             output_pngs = False, output_npys = True, output_matlab = True)
 
     K.clear_session()
-    tf.compat.v1.reset_default_graph()
-
-    config = tf.compat.v1.ConfigProto( device_count = {'GPU': 1} )
-    config.gpu_options.allow_growth = True
-    sess = tf.compat.v1.Session(config=config)
-
-    K.set_session(sess)
-
-    for dataset in range(1,13):#(3,5,7,9,11,13):#(1,2,3,4):
-
-        test_set = "C:/Users/Thomas/Downloads/HBP/multimodalplacerecognition_datasets/snow_husky_testset{}".format(dataset)
-        reconstructions_save_path = "C:/Users/Thomas/Downloads/HBP/representations/NRP/snow_husky/mmvae/testset{}/head_direction/".format(dataset)
-        representations_save_path = "C:/Users/Thomas/Downloads/HBP/representations/NRP/snow_husky/mmvae/testset{}/head_direction/".format(dataset)
-
-        test_and_generate(  test_set, reconstructions_save_path, representations_save_path, available_modality = "pose", 
-                            output_pngs = False, output_npys = True, output_matlab = True)
 
 
 generate_mupnet_comparison_data()
