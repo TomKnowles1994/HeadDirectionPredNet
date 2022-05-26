@@ -116,14 +116,7 @@ def calculate_divergence(prediction_list, laplacian_list, metric):
 
             wasserstein_distances = []
 
-            #print(predictions.shape)
-
             for prediction, laplacian in zip(predictions, laplacians):
-
-                #wasserstein_forward = wasserstein_distance(prediction, laplacian) % 180
-                #wasserstein_backward = wasserstein_distance(laplacian, prediction) % 180
-
-                #wasserstein_distances.append(np.min([wasserstein_forward, wasserstein_backward]))
 
                 wasserstein_distances.append(wasserstein_distance(prediction, laplacian))
 
@@ -136,9 +129,6 @@ def calculate_divergence(prediction_list, laplacian_list, metric):
             kl_divergences = []
 
             for prediction, laplacian in zip(predictions, laplacians):
-
-                #print(prediction.shape)
-                #print(laplacian.shape)
 
                 kl_divergences.append(kl_div(prediction, laplacian))
 
@@ -186,11 +176,11 @@ def append_degree_symbol_to_tick_labels(tick_labels):
 
     return tick_labels
 
-datasets_root_path = 'C:/Users/Thomas/Downloads/HBP/multimodalplacerecognition_datasets/whiskeye_head_direction_'
+datasets_root_path = ' ' # Point to folder containing dataset folders
 
-representations_root_path = 'C:/Users/Thomas/Downloads/HBP/representations/NRP/whiskeye_head_direction_'
+representations_root_path = ' ' # Point to folder of representation/prediction folders
 
-results_root_path = 'C:/Users/Thomas/Downloads/HBP/head_direction_evaluation/whiskeye_head_direction_'
+results_root_path = ' ' # Point to folder showing results
 
 ground_truth_filenames = [              datasets_root_path + 'rotating_distal/networkOutput_gaussianised.npy']
 
@@ -395,10 +385,6 @@ def generate_radar_chart(   predictions_filepath, ax, colour_string, label, flip
                     np.mean(jensen_shannon270_299), np.mean(jensen_shannon300_329), np.mean(jensen_shannon330_359),
                     np.mean(jensen_shannon0_29)]
 
-    #line_heights = [1/x for x in line_heights]
-
-    #line_heights = minmax_scale(line_heights)
-
     angles = np.radians([0,30,60,90,120,150,180,210,240,270,300,330,0]) + np.radians(15)
 
     if bar:
@@ -432,8 +418,6 @@ def generate_radar_chart(   predictions_filepath, ax, colour_string, label, flip
 
     ax.set_xticks(np.radians([0,30,60,90,120,150,180,210,240,270,300,330]))
 
-    #ax.set_xticklabels([0,30,60,90,120,150,180,210,240,270,300,330], loc = 'center')
-
     ax.set_rlabel_position(0)
 
     if bar:
@@ -448,22 +432,11 @@ def generate_radar_chart(   predictions_filepath, ax, colour_string, label, flip
         ax.tick_params(labelleft=True, labelright=False,
                         labeltop=False, labelbottom=True)
 
-        #ax.set_rorigin(-3)
         ax.set_rorigin(-0.1)
-
-    #ax.set_rorigin(-min(line_heights))
-
-    #ax.set_rorigin(-3)
-
-    #ax.set_ylim(np.max(segment_heights) + 100)
-
-    #ax.set_ylim(np.min(line_heights)*0.2, np.max(line_heights)*1.5)
 
     ax.set_theta_offset((np.pi / 2))
 
     ax.plot(angles, line_heights, 'o-', color = colour_string, zorder = 10, label = label)
-
-    #ax.fill(angles, line_heights, alpha = 0.3, color = colour_string)
 
     if error_bars == True:
 
@@ -482,10 +455,6 @@ def generate_radar_chart(   predictions_filepath, ax, colour_string, label, flip
 
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey = True, subplot_kw={"projection": "polar"})
 
-#plt.rcParams.update({'axes.titlesize': 16})
-
-#fig.tight_layout()
-
 fig.set_figheight(9)
 fig.set_figwidth(16)
 
@@ -500,14 +469,12 @@ if plot_type is 'by_model':
     ax1 = generate_radar_chart(ideo_representations_filenames[0], ax1, cnn_colour, label = 'Ideothetic Estimate', ground_truth_filepath = ground_truth_filenames[0], raise_floor = False)
 
     ax1.set_title("MultiPredNet", pad = 20)
-    #ax1.legend()
 
     ax2 = generate_radar_chart(full_representations_filenames[1], ax2, pcn_colour, label = 'Full Set', flip = False, ground_truth_filepath = ground_truth_filenames[0], raise_floor = False)
     ax2 = generate_radar_chart(single_representations_filenames[1], ax2, vae_colour, label = 'Single Rotation', flip = False, ground_truth_filepath = ground_truth_filenames[0], raise_floor = False)
     ax2 = generate_radar_chart(ideo_representations_filenames[1], ax2, cnn_colour, label = 'Ideothetic Estimate', flip = False, ground_truth_filepath = ground_truth_filenames[0], raise_floor = False)
 
     ax2.set_title("MMVAE", pad = 20)
-    #ax2.legend()
     ax2.legend(bbox_to_anchor=(1.25, -0.12), ncol=3, prop={'size': 12})
 
     ax3 = generate_radar_chart(full_representations_filenames[2], ax3, pcn_colour, label = 'Full Set', error_bars = False, ground_truth_filepath = ground_truth_filenames[0], raise_floor = False)
@@ -523,15 +490,12 @@ if plot_type is 'by_training_set':
     ax1 = generate_radar_chart(convnet_representations_filenames[0], ax1, cnn_colour, label = 'CNN', ground_truth_filepath = ground_truth_filenames[0], raise_floor = False)
 
     ax1.set_title("Full Set", pad = 20)
-    #ax1.legend()
 
     ax2 = generate_radar_chart(multiprednet_representations_filenames[1], ax2, pcn_colour, label = 'PCN', ground_truth_filepath = ground_truth_filenames[0], raise_floor = False)
     ax2 = generate_radar_chart(mmvae_representations_filenames[1], ax2, vae_colour, label = 'VAE', ground_truth_filepath = ground_truth_filenames[0], raise_floor = False)
     ax2 = generate_radar_chart(convnet_representations_filenames[1], ax2, cnn_colour, label = 'CNN', ground_truth_filepath = ground_truth_filenames[0], raise_floor = False)
 
     ax2.set_title("Reduced Set", pad = 20)
-    #ax2.legend()
-    #ax2.legend(bbox_to_anchor=(1.10, -0.12), ncol=3, prop={'size': 12})
     ax2.legend(bbox_to_anchor=(0.97, -0.12), ncol=3, prop={'size': 12})
 
     ax3 = generate_radar_chart(multiprednet_representations_filenames[2], ax3, pcn_colour, label = 'PCN', ground_truth_filepath = ground_truth_filenames[0], raise_floor = False)
@@ -540,29 +504,11 @@ if plot_type is 'by_training_set':
 
     ax3.set_title("SNN Estimate", pad = 20)
 
-#ax1.set_rscale('symlog')
-#ax2.set_rscale('symlog')
-#ax3.set_rscale('symlog')
-
-#ax1.set_facecolor('0.97')
-#ax2.set_facecolor('0.97')
-#ax3.set_facecolor('0.97')
-
-#ax3.legend()
-
-#cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
-
-#cb = fig.colorbar(sm3, ax=[[ax1, ax2, ax3]], orientation = 'horizontal', pad = 0.1, fraction = 0.15)
-
-#cb.set_label('Quality\n (Mean Inverse Jensen-Shannon Divergence)')
-
-#fig.suptitle("MultiPredNet Prediction Quality")#, y = 0.85)
-
 plt.subplots_adjust(top = 1.25, bottom = 0.05, wspace = 0.22)
 
 ax4 = fig.add_subplot(4,1,4)
 
-whiskeye_vision = imread("C:/Users/Thomas/Desktop/Figures for Head Direction Ring Paper/chinese_garden_whiskeye_vision.png")[:,:,::-1]
+whiskeye_vision = imread(' Path to image file ')[:,:,::-1]
 
 ax4.imshow(whiskeye_vision)
 
@@ -573,8 +519,6 @@ image_labels = [180, 210, 240, 270, 300, 330, 0, 30, 60, 90, 120, 150, 180]
 image_labels = append_degree_symbol_to_tick_labels(image_labels)
 
 tick_locations = np.linspace(0, whiskeye_vision.shape[1], num = len(image_labels))
-
-#ax4.vlines(tick_locations, 1)
 
 ax4.set_xticks([])
 
@@ -624,8 +568,6 @@ def generate_radial_bar_chart(ground_truth_filepath, ax, colourmap_string = None
 
     angles = np.radians([0,30,60,90,120,150,180,210,240,270,300,330]) + np.radians(15)
 
-    #assert np.sum(segment_heights) == rotating_data.shape[0]
-
     ax.set_xticks(np.radians([0,30,60,90,120,150,180,210,240,270,300,330]))
 
     ax.set_rlabel_position(30)
@@ -642,8 +584,6 @@ def generate_radial_bar_chart(ground_truth_filepath, ax, colourmap_string = None
     if colourmap_string is None:
 
         COLOURS = ["#6C5B7B","#C06C84","#F67280","#F8B195"]
-        #COLOURS = ["#ED885A", "#F75E69", "#D260E0", "#865EF7", "#4D86F0"]
-        #COLOURS = ["#E0C375", "#E09E6A", "#E0675E"]
 
         norm = mpl.colors.Normalize(vmin=np.min(segment_heights)/1.2, vmax=np.max(segment_heights))
 
@@ -663,8 +603,6 @@ def generate_radial_bar_chart(ground_truth_filepath, ax, colourmap_string = None
 
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, subplot_kw={"projection": "polar"})
 
-#fig.tight_layout()
-
 fig.set_figheight(8)
 fig.set_figwidth(17)
 
@@ -677,8 +615,6 @@ sm3, ax3 = generate_radial_bar_chart(ground_truth_filenames[0], ax3, colourmap)
 ax1.set_title("MultiPredNet", pad = 20)
 ax2.set_title("Single Rotation", pad = 20)
 ax3.set_title("Ideothetic Estimate", pad = 20)
-
-#cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
 
 cb = fig.colorbar(sm3, ax=[[ax1, ax2, ax3]], orientation = 'horizontal', pad = 0.1, fraction = 0.15)
 
