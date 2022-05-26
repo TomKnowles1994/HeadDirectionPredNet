@@ -7,11 +7,14 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import minmax_scale
 from sklearn.metrics import mean_squared_error
 
+# 'ground_truth_to_prediction' means to take the error as being between the result and the ground truth for that data sample. It measures quality and accuracy
+# 'prediction_to_prediction' means to take the error as being between the result and its ideal Laplacian form. It measures quality only
+
 mode = 'ground_truth_to_prediction'
 
 item = 1500
 
-alpha = 1#0.3
+alpha = 1
 
 def load_datasets(file_names, max_samples, clip = None, raise_floor = False, transpose = False):
 
@@ -145,11 +148,11 @@ def distribution_fudge(prediction_list):
 
     return prediction_list
 
-datasets_root_path = 'C:/Users/Thomas/Downloads/HBP/multimodalplacerecognition_datasets/whiskeye_head_direction_'
+datasets_root_path = ' ' # Point to datasets folder. Should be as written in Tensorflow code
 
-representations_root_path = 'C:/Users/Thomas/Downloads/HBP/representations/NRP/whiskeye_head_direction_'
+representations_root_path = ' ' # Point to PredNet representations/predictions folder. Should be as written in Tensorflow code
 
-results_root_path = 'C:/Users/Thomas/Downloads/HBP/head_direction_evaluation/whiskeye_head_direction_'
+results_root_path = ' ' # Point to results folder. Should be as written in Tensorflow code
 
 ground_truth_filenames = [              datasets_root_path + 'rotating_distal/networkOutput_gaussianised.npy',
                                         datasets_root_path + 'circling_distal/networkOutput_gaussianised.npy',
@@ -227,7 +230,6 @@ if mode is 'ground_truth_to_prediction':
 
     ideo_jensen_shannon = calculate_divergence(ideo_representations_predictions, ground_truth_datasets, 'rmse')
 
-#ax1.plot([], [], ' ', label = "Trained on:")
 ax1.plot(ground_truth_datasets[0][item], label = "Ground Truth")
 ax1.plot(full_representations_predictions[0][item], label = "Prediction")
 ax2.plot(ground_truth_datasets[0][item])
@@ -242,7 +244,7 @@ ax3.fill_between(x, ground_truth_datasets[0][item], ideo_representations_predict
 
 ### MMVAE Reconstruction Quality ###
 
-representations_root_path = 'C:/Users/Thomas/Downloads/HBP/representations/NRP/whiskeye_head_direction_'
+representations_root_path = ' ' # Point to VAE representations/predictions folder. Should be as written in Tensorflow code
 
 ground_truth_filenames = [              datasets_root_path + 'rotating_distal/networkOutput_gaussianised.npy',
                                         datasets_root_path + 'circling_distal/networkOutput_gaussianised.npy',
@@ -309,13 +311,6 @@ if mode is 'ground_truth_to_prediction':
 
     ideo_jensen_shannon = calculate_divergence(ideo_representations_predictions, ground_truth_datasets, 'rmse')
 
-#ax2.plot([], [], ' ', label = "Trained on:")
-#ax2.bar([0.8, 1.8, 2.8, 3.8, 4.8, 5.8, 6.8], full_jensen_shannon, width = 0.2, label = "Full Dataset")
-#ax2.bar([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0], single_jensen_shannon, width = 0.2, label = "Single Rotation")
-#ax2.bar([1.2, 2.2, 3.2, 4.2, 5.2, 6.2, 7.2], ideo_jensen_shannon, width = 0.2, label = "Ideothetic Estimate")
-#ax2.set_xticks(range(1, 8))
-#ax2.set_xticklabels(["Rotating", "Circling", "Rand 1", "Rand 2", "Rand 3", "Rand 4", "Rand 5"])
-
 ax4.plot(ground_truth_datasets[0][item])
 ax4.plot(full_representations_predictions[0][item])
 ax5.plot(ground_truth_datasets[0][item])
@@ -329,7 +324,7 @@ ax6.fill_between(x, ground_truth_datasets[0][item], ideo_representations_predict
 
 ### ConvNet Reconstruction Quality ###
 
-representations_root_path = 'C:/Users/Thomas/Downloads/HBP/representations/NRP/whiskeye_head_direction_'
+representations_root_path = ' ' # Point to CNN representations/predictions folder. Should be as written in Tensorflow code
 
 ground_truth_filenames = [              datasets_root_path + 'rotating_distal/networkOutput_gaussianised.npy',
                                         datasets_root_path + 'circling_distal/networkOutput_gaussianised.npy',
@@ -398,14 +393,6 @@ if mode is 'ground_truth_to_prediction':
 
     ideo_jensen_shannon = calculate_divergence(ideo_representations_predictions, ground_truth_datasets, 'rmse')
 
-#ax3.plot([], [], ' ', label = "Trained on:")
-#ax3.bar([0.8, 1.8, 2.8, 3.8, 4.8, 5.8, 6.8], full_jensen_shannon, width = 0.2, label = "Full Dataset")
-#ax3.bar([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0], single_jensen_shannon, width = 0.2, label = "Single Rotation")
-#ax3.bar([1.2, 2.2, 3.2, 4.2, 5.2, 6.2, 7.2], ideo_jensen_shannon, width = 0.2, label = "Ideothetic Estimate")
-#ax3.set_xticks(range(1, 8))
-#ax3.set_xticklabels(["Rotating", "Circling", "Rand 1", "Rand 2", "Rand 3", "Rand 4", "Rand 5"])
-#ax3.legend(loc = "upper right")
-
 ax7.plot(ground_truth_datasets[0][item])
 ax7.plot(full_representations_predictions[0][item])
 ax8.plot(ground_truth_datasets[0][item])
@@ -416,14 +403,6 @@ x = np.arange(0.0, 180, 1)
 ax7.fill_between(x, ground_truth_datasets[0][item], full_representations_predictions[0][item], color = '#99e6ff', alpha = alpha)
 ax8.fill_between(x, ground_truth_datasets[0][item], single_representations_predictions[0][item], color = '#99e6ff', alpha = alpha)
 ax9.fill_between(x, ground_truth_datasets[0][item], ideo_representations_predictions[0][item], color = '#99e6ff', alpha = alpha)
-
-#ax1.set_ylabel("Full Dataset")
-#ax2.set_ylabel("Single Rotation")
-#ax3.set_ylabel("Ideothetic Estimate")
-
-#ax1.set_title("MultiPredNet")
-#ax4.set_title("MMVAE")
-#ax7.set_title("CNN")
 
 ax1.set_ylabel("Full Set")
 ax2.set_ylabel("Reduced Set")
@@ -437,31 +416,9 @@ ax1.set_title("PCN")
 ax4.set_title("VAE")
 ax7.set_title("CNN")
 
-#ax1.set_yticks([])
-#ax2.set_yticks([])
-#ax3.set_yticks([])
-#ax4.set_yticks([])
-#ax5.set_yticks([])
-#ax6.set_yticks([])
-#ax7.set_yticks([])
-#ax8.set_yticks([])
-#ax9.set_yticks([])
-
-#fig.tight_layout()
-
 plt.subplots_adjust(wspace=0.1, hspace=0.25)
 
-#plt.subplots_adjust(top = 0.2, bottom = 0.15)
-
 plt.subplots_adjust(bottom = 0.2)
-
-#fig.tight_layout()
-
-#ax2.legend(bbox_to_anchor=(1.17, -0.1), ncol=3, prop={'size': 12})
-
-#ax1.legend(bbox_to_anchor=(2.16, -2.75), ncol=3, prop={'size': 12})
-
-#ax1.legend(bbox_to_anchor=(2.56, -2.75), ncol=3, prop={'size': 12})
 
 ax1.legend(bbox_to_anchor=(2.58, -2.95), ncol=3, prop={'size': 12})
 
