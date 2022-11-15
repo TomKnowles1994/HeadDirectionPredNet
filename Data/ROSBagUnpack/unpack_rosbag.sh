@@ -45,7 +45,7 @@ for i in ${!topic_list[@]}; do
 
 	echo "Unpacking topic ${topic_list[i]} to ${file_list[i]}"
 
-	rostopic echo -b 1.bag -p ${topic_list[i]} > ${file_list[i]} & subprocess_ids+=("$!")
+	rostopic echo -b $bagfile -p ${topic_list[i]} > ${file_list[i]} & subprocess_ids+=("$!")
 
 	echo "Subprocess dispatched on PID ${subprocess_ids[i]}"
 
@@ -137,7 +137,7 @@ for i in ${!topic_list[@]}; do
 	fi
 done
 
-python3 extract_images_from_rosbag.py &
+python3 extract_images_from_rosbag.py $bagfile &
 
 wait
 
