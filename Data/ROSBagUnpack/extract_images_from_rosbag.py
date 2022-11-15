@@ -5,6 +5,7 @@ from scipy.spatial.transform import Rotation
 
 import os
 from glob import iglob
+from argparse import ArgumentParser
 
 import rosbag
 from sensor_msgs.msg import Image
@@ -14,7 +15,10 @@ from cv_bridge import CvBridge
 preserve_pose_index = True          # True if you want to keep the original pose index as a column in the final dataset. False if you want MultiPredNet-ready data.
 preserve_pose_timestamps = True     # True if you want to keep the pose timestamps in the final dataset. False if you want MultiPredNet-ready data.
 
-bag_file = "1.bag"
+parser = ArgumentParser()
+parser.add_argument('bagfile')
+
+bag_file = parser.parse_args().bagfile
 
 jpg_quality = 100
 
