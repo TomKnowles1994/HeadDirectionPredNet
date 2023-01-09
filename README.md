@@ -1,7 +1,7 @@
 # HeadDirectionPredNet
-Code and data accompanying the paper "A Spiking Neural Network Model of Rodent Head Direction calibrated with Landmark Free Learning" by Rachael Stentiford, Thomas C. Knowles and Martin J. Pearson (in review)
+Code and data accompanying the paper "A Spiking Neural Network Model of Rodent Head Direction calibrated with Landmark Free Learning" by Rachael Stentiford, Thomas C. Knowles and Martin J. Pearson
 
-Preprint at: https://doi.org/10.1101/2022.02.01.478640
+Paper at: https://doi.org/10.3389/fnbot.2022.867019
 
 ## Contents
 
