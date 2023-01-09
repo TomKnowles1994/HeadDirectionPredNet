@@ -123,13 +123,13 @@ n_sample = 2000                             # If you have collected your own dat
 minibatch_sz = 10                            # Minibatch size. Can be left as default for physical data, for simulated data good numbers to try are 40, 50 and 100
                                             # Datasize size must be fully divisible by minibatch size
 
-data_path = 'C:/Users/Thomas/Downloads/HBP/multimodalplacerecognition_datasets/whiskeye_head_direction_trainingset'               # Path to training data. Training data should be in .npy format:
+data_path = ' '               # Path to training data. Training data should be in .npy format:
 
-save_path = 'C:/Users/Thomas/Downloads/HBP/model_checkpoints/landmarks_vh/whiskeye_head_direction_ideo'#trial1'               # Path to save trained model to (once trained)
-load_path = 'C:/Users/Thomas/Downloads/HBP/model_checkpoints/landmarks_vh/whiskeye_head_direction_ideo'#trial1'               # Path to load trained model from (after training, or if already trained beforehand)
+save_path = ' '               # Path to save trained model to (once trained)
+load_path = ' '               # Path to load trained model from (after training, or if already trained beforehand)
 
-cause_save_path = save_path + '/causes'#trial1/causes'  # Path to save causes to (optional, for training diagnostics)
-reconstruction_save_path = save_path + '/reconstructions'#trial1/reconstructions'  # Path to save reconstructons to (optional, for training diagnostics)
+cause_save_path = save_path + '/causes'  # Path to save causes to (optional, for training diagnostics)
+reconstruction_save_path = save_path + '/reconstructions'  # Path to save reconstructons to (optional, for training diagnostics)
 
 save_m1_causes = False
 save_m2_causes = False
