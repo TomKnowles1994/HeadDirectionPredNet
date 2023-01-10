@@ -156,13 +156,12 @@ visual_data, pose_data = load_npy_data(data_path, n_sample, minibatch_sz, shuffl
 
 load_model = False                          # If True, load a previously trained model from load_path. If False, train from scratch.
 
-m1_inp_shape = visual_data.shape[1]         # modality 1 (default vision) input layer shape
-m2_inp_shape = pose_data.shape[1]           # modality 2 (default pose) input layer shape
-
 m1_layers = [1000, 300]                     # modality 1 layers shape
+m2_layers = []                              # non-functional
 msi_layers = [100]                          # multi-modal integration layers shape; m2 currently has no hidden layers
 
 m1_cause_init = [0.25, 0.25]                # the starting value for the inference process, whereby priors are updated according to evidence; modality 1
+m2_cause_init = []                          # non-functional
 msi_cause_init = [0.25]                     # the starting value for the inference process, whereby priors are updated according to evidence; multi-modal integration
 
 reg_m1_causes = [0.0, 0.0]                  # regularised error, disabled by default; modality 1
@@ -170,12 +169,15 @@ reg_m2_causes = [0.2, 0.2]                  # regularised error, disabled by def
 reg_msi_causes = [0.0]                      # regularised error, disabled by default; multi-modal integration
 
 lr_m1_causes = [0.0004, 0.0004]             # learning rate for the inference process; modality 1
+lr_m2_causes = []                           # non-functional
 lr_msi_causes = [0.0004]                    # learning rate for the inference process; multi-modal integration
 
 reg_m1_filters = [0.0, 0.0]                 # filters for regularised error, disabled by default; modality 1
+reg_m2_filters = []                         # non-functional
 reg_msi_filters = [0.0, 0.0]                # filters for regularised error, disabled by default; multi-modal integration
 
 lr_m1_filters = [0.0001, 0.0001]            # learning rate for the inference process; modality 1
+lr_m2_filters = []                          # non-functional
 lr_msi_filters = [0.0001, 0.0001]           # learning rate for the inference process; multi-modal integration
 
 class Network:
