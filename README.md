@@ -5,7 +5,7 @@ Paper at: https://doi.org/10.3389/fnbot.2022.867019
 
 This work was also involved in the paper "Integrating Spiking Neural Networks and Deep Learning Algorithms on the Neurorobotics Platform" by Rachael Stentiford, Thomas C. Knowles, Benedikt Feldoto, Deniz Ergene, Fabrice O. Morin and Martin J. Pearson
 
-Paper at: https://link.springer.com/chapter/10.1007/978-3-031-20470-8_7
+Paper at: http://dx.doi.org/10.1007/978-3-031-20470-8_7
 
 ## Contents
 
