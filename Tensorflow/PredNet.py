@@ -156,6 +156,9 @@ visual_data, pose_data = load_npy_data(data_path, n_sample, minibatch_sz, shuffl
 
 load_model = False                          # If True, load a previously trained model from load_path. If False, train from scratch.
 
+m1_input_shape = visual_data.shape[1]       # Get visual input shape from relevant dataset
+m2_input_shape = pose_data.shape[1]         # Get pose input shape from relevant dataset
+
 m1_layers = [1000, 300]                     # modality 1 layers shape
 m2_layers = []                              # non-functional
 msi_layers = [100]                          # multi-modal integration layers shape; m2 currently has no hidden layers
